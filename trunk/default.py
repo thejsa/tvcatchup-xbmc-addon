@@ -1,8 +1,5 @@
 import urllib,urllib2,re,sys,xbmcplugin,xbmcgui
 
-uname = "*ENTER USERNAME*"
-pwd = "*ENTER PASSWORD*"
-
 def getURL(url):
     opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
     opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14')]
@@ -43,7 +40,8 @@ def VIDEO(url):
     idlink = getURL(url)
     info=re.compile('"(.+?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_logo":"(.+?)","channel_status":"(.+?)","now":{"programme_name":"(.+?)","programme_start":"(.+?)","programme_end":"(.+?)"},"next":{"programme_name":"(.+?)","programme_start":"(.+?)","programme_end":"(.+?)"}}').findall(slink)
     #channelid, tchannelid, name, logo, status, nowname, nowstart, nowend, nextname, nextstart, nextend
-    tvcid=re.compile("Auth_Key=(.+?)&apiUrl=").findall(idlink)
+    tvcid=re.compile('TVCWebPlayer\("(.+?)"\);').findall(idlink)
+    print tvcid
     rtmplink = postURL("http://api.tvcatchup.com", tvcid[0], url.split("=")[1])
     rtmp = re.compile('"channel_streamer":"(.+?)chan=.+?"').findall(rtmplink)
     rtfile = re.compile('"channel_file":"(.+?)"').findall(rtmplink)
@@ -73,7 +71,15 @@ def get_params():
                                 param[splitparams[0]]=splitparams[1]
         return param
 
-       
+def check_settings():
+		uname = xbmcplugin.getSetting('uname')
+		pwd   = xbmcplugin.getSetting('pwd')
+		if (not uname or uname == '') or (not pwd or pwd == ''):
+				d = xbmcgui.Dialog()
+				d.ok('Welcome to the TVCatchup plugin.', 'To start using this plugin first go to www.TVCatchup.com','and create a (free) account.')
+				xbmcplugin.openSettings(sys.argv[ 0 ]) 
+						
+		
 def addLink(name,url):
         ok=True
         liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png")
@@ -88,6 +94,10 @@ def addDir(name,url,mode,iconimage):
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=u,listitem=liz,isFolder=True)
         return ok
 
+
+check_settings()
+uname = xbmcplugin.getSetting('uname')
+pwd   = xbmcplugin.getSetting('pwd')
         
 params=get_params()
 url=None
