@@ -27,18 +27,19 @@ def postURL(url, tvcid, channelid):
 
 def CHANNELS(url):
     link = getURL("http://www.tvcatchup.com/?cache=1")
-    urls=re.compile('"(.+?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_logo":"(.+?)","channel_status":"(.+?)","now":{"programme_name":".+?","programme_start":".+?","programme_end":".+?"},"next":{"programme_name":".+?","programme_start":".+?","programme_end":".+?"}}').findall(link)
+    urls=re.compile('"(.{1,2}?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_status":"(.+?)","now":{"title":".+?","start":".+?","end":".+?"}}').findall(link)
     #channelid, tchannelid, name, logo, status
-    for channelid, tchannelid, name, logo, status in urls:
+    print urls
+    for channelid, tchannelid, name, status in urls:
         print status
-        print logo.replace("\\/", "/").replace(" ", "%20")
+       # print logo.replace("\\/", "/").replace(" ", "%20")
         if status=="enabled":
-            addDir(name,"http://www.tvcatchup.com/watch.html?c=" + channelid,1,logo.replace("\\/", "/").replace(" ", "%20"))
+            addDir(name,"http://www.tvcatchup.com/watch.html?c=" + channelid,1,"")
 
 def VIDEO(url):
     slink = getURL("http://www.tvcatchup.com/?cache=1")
     idlink = getURL(url)
-    info=re.compile('"(.+?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_logo":"(.+?)","channel_status":"(.+?)","now":{"programme_name":"(.+?)","programme_start":"(.+?)","programme_end":"(.+?)"},"next":{"programme_name":"(.+?)","programme_start":"(.+?)","programme_end":"(.+?)"}}').findall(slink)
+    info=re.compile('"(.{1,2}?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_status":"(.+?)","now":{"title":"(.+?)","start":"(.+?)","end":"(.+?)"}}').findall(slink)
     #channelid, tchannelid, name, logo, status, nowname, nowstart, nowend, nextname, nextstart, nextend
     tvcid=re.compile('TVCWebPlayer\("(.+?)"\);').findall(idlink)
     print tvcid
@@ -46,13 +47,25 @@ def VIDEO(url):
     rtmp = re.compile('"channel_streamer":"(.+?)chan=.+?"').findall(rtmplink)
     rtfile = re.compile('"channel_file":"(.+?)"').findall(rtmplink)
     video=[(rtmp[i], rtfile[i])for i in range (0,len(rtmp))]
-    for channelid, tchannelid, name, logo, status, nowname, nowstart, nowend, nextname, nextstart, nextend in info:
+    for channelid, tchannelid, name, logo, status, nowname, nowstart, nowend in info:
         if channelid==url.split("=")[1]:
             for rtmp, rtf in video:
                print rtmp.replace("\\/","/") + rtf
                addLink(nowstart + " - " + nowname, rtmp.replace("\\/","/") + rtf)
-               addLink(nextstart + " - " + nextname, rtmp.replace("\\/","/") + rtf)
+               #addLink(nextstart + " - " + nextname, rtmp.replace("\\/","/") + rtf)
 
+def OLDVIDEO(url):
+    slink = getURL("http://www.tvcatchup.com/?cache=1")
+    idlink = getURL(url)
+    info=re.compile('"(.{1,2}?)":{"channel_id":"(.+?)","channel_name":"(.+?)","channel_status":"(.+?)","now":{"title":"(.+?)","start":"(.+?)","end":"(.+?)"}}').findall(slink)
+    #channelid, tchannelid, name, status, nowname, nowstart, nowend, nextname, nextstart, nextend
+    video=re.compile('flashvars\.streamer = "(.+?)chan=.+?";\n\tflashvars.file = "(.+?)";',re.MULTILINE).findall(idlink)
+    for channelid, tchannelid, name, status, nowname, nowstart, nowend in info:
+        if channelid==url.split("=")[1]:
+            for rtmp, rtf in video:
+               print rtmp.replace("\\/","/") + rtf
+               addLink(nowstart + " - " + nowname, rtmp.replace("\\/","/") + rtf)
+               #addLink(nextstart + " - " + nextname, rtmp.replace("\\/","/") + rtf)
 
 def get_params():
         param=[]
@@ -125,6 +138,9 @@ if mode==None or url==None or len(url)<1:
         CHANNELS('http://www.tvcatchup.com')
 elif mode==1:
         print "Get Rtmp"
-        VIDEO(url)
+        try:
+            VIDEO(url)
+        except:
+            OLDVIDEO(url)
 
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
