@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.tvcatchup"
+       name="TVCatchup"
+       version="1.3.4"
+       provider-name="dj_gerbil and the guys at TVC">
+    <requires>
+        <import addon="xbmc.python" version="1.0"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource"
+               library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <platform>all</platform>
+        <summary>TVCatchup</summary>
+        <description>This plugin allows UK users to view free-to-air channels on XBMC courtesy of TVCatchup.com</description>
+    	   <disclaimer>This plugin is provided as is. Although all attempts will be made to help resolve issues, no promises can be made. Please note: You must hold a valid TV Licence and be within the UK Borders to use this plugin. Use of VPN's to attempt to bypass geo-blocking is not allowed and will be blocked.</disclaimer>
+    </extension>
+</addon>
